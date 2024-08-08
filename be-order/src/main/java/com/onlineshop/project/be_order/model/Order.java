@@ -22,7 +22,7 @@ public class Order {
     private Integer id;
 
     @Column(name = "code", unique = true, nullable = false)
-    private UUID code = UUID.randomUUID();
+    private UUID code;
 
     @Column(name = "date")
     private Date date;
@@ -40,4 +40,9 @@ public class Order {
 
     @Column(name = "quantity")
     private Integer quantity;
+
+    @PrePersist
+    public void prePersist() {
+        this.setCode(UUID.randomUUID());
+    }
 }

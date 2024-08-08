@@ -27,7 +27,7 @@ public class Customer {
     private String address;
 
     @Column(name = "code", unique = true, nullable = false)
-    private UUID code = UUID.randomUUID();
+    private UUID code;
 
     @Column(name = "phone")
     private String phone;
@@ -40,4 +40,9 @@ public class Customer {
 
     @Column(name = "pic")
     private String pic;
+
+    @PrePersist
+    public void prePersist() {
+        this.setCode(UUID.randomUUID());
+    }
 }

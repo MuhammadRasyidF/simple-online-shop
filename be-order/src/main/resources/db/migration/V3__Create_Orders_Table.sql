@@ -1,6 +1,6 @@
 CREATE TABLE orders (
     id INTEGER AUTO_INCREMENT PRIMARY KEY,
-    code VARCHAR(50) NOT NULL,
+    code BINARY(16) NOT NULL,
     date DATE,
     total_price DECIMAL(10, 2) NOT NULL,
     customer_id INTEGER,

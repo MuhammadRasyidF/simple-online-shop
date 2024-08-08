@@ -25,7 +25,7 @@ public class Item {
     private String name;
 
     @Column(name = "code", unique = true, nullable = false)
-    private UUID code = UUID.randomUUID();
+    private UUID code;
 
     @Column(name = "stock")
     private Integer stock;
@@ -38,4 +38,9 @@ public class Item {
 
     @Column(name = "last_re_stock")
     private Date lastReStock;
+
+    @PrePersist
+    public void prePersist() {
+            this.setCode(UUID.randomUUID());
+    }
 }

@@ -41,17 +41,15 @@ public class ItemService {
     public BaseResponse<List<ItemResponse>> getItem() throws Exception {
 
         List<ItemResponse> itemResponses = itemRepository.findAll().stream()
-                .map(item -> {
-                    return ItemResponse.builder()
-                            .itemId(item.getId())
-                            .itemName(item.getName())
-                            .code(item.getCode())
-                            .stock(item.getStock())
-                            .price(item.getPrice())
-                            .isAvailable(item.getIsAvailable())
-                            .lastReStock(item.getLastReStock())
-                            .build();
-                })
+                .map(item -> ItemResponse.builder()
+                        .itemId(item.getId())
+                        .itemName(item.getName())
+                        .code(item.getCode())
+                        .stock(item.getStock())
+                        .price(item.getPrice())
+                        .isAvailable(item.getIsAvailable())
+                        .lastReStock(item.getLastReStock())
+                        .build())
                 .toList();
 
         return BaseResponse.<List<ItemResponse>>builder()
@@ -146,7 +144,7 @@ public class ItemService {
         itemRepository.deleteById(itemId);
 
         return BaseResponse.<String>builder()
-                .message("Item dengan ID " + itemId + "berhasil dihapus")
+                .message("Item dengan ID " + itemId + " berhasil dihapus")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK.name())
                 .build();

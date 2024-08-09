@@ -31,6 +31,14 @@ public class CustomerController {
             @RequestPart("data") AddCustomerRequest addCustomerRequest,
             @RequestPart("image")MultipartFile imageFile) throws Exception {
 
+        if (imageFile.getContentType() == null){
+            return ResponseEntity.badRequest().body(BaseResponse.builder()
+                    .message("Tolong upload gambar")
+                    .statusCode(HttpStatus.BAD_REQUEST.value())
+                    .status(HttpStatus.BAD_REQUEST.name())
+                    .build());
+        }
+
         if (!List.of("image/jpeg", "image/jpg", "image/png").contains(imageFile.getContentType())) {
             return ResponseEntity.badRequest().body(BaseResponse.builder()
                     .message("Format gambar tidak sesuai (jpg/jpeg/png)")

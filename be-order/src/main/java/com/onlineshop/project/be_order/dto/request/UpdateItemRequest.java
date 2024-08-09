@@ -1,6 +1,6 @@
 package com.onlineshop.project.be_order.dto.request;
 
-import jakarta.validation.constraints.Pattern;
+
 import lombok.Data;
 
 import java.math.BigDecimal;

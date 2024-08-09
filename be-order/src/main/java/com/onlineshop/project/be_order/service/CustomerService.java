@@ -6,6 +6,7 @@ import com.onlineshop.project.be_order.dto.response.BaseResponse;
 import com.onlineshop.project.be_order.dto.response.CustomerRespone;
 import com.onlineshop.project.be_order.model.Customer;
 import com.onlineshop.project.be_order.repository.CustomerRepository;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ public class CustomerService {
     private MinioService minioService;
 
     public BaseResponse<?> addCustomer(AddCustomerRequest addCustomerRequest, MultipartFile imageFile) throws Exception {
+
         String fileName = String.format("%s_%s.%s",
                 addCustomerRequest.getCustomerName(),
                 System.currentTimeMillis(),
@@ -144,7 +146,7 @@ public class CustomerService {
         customerRepository.updateIsActiveById(customerId, false);
 
         return BaseResponse.<String>builder()
-                .message("Customer dengan ID " + customerId + "berhasil dihapus")
+                .message("Customer dengan ID " + customerId + " berhasil dihapus")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK.name())
                 .build();

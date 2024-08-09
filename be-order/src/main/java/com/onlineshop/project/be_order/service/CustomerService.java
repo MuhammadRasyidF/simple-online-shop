@@ -6,19 +6,14 @@ import com.onlineshop.project.be_order.dto.response.BaseResponse;
 import com.onlineshop.project.be_order.dto.response.CustomerRespone;
 import com.onlineshop.project.be_order.model.Customer;
 import com.onlineshop.project.be_order.repository.CustomerRepository;
-import io.minio.errors.MinioException;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class CustomerService {
@@ -48,16 +43,16 @@ public class CustomerService {
         customerRepository.save(customer);
 
         return BaseResponse.<String>builder()
-                .message("Berhasil menambahkan customer " + addCustomerRequest.getCustomerName() + addCustomerRequest.getCode())
+                .message("Berhasil menambahkan customer " + addCustomerRequest.getCustomerName())
                 .statusCode(HttpStatus.CREATED.value())
                 .status(HttpStatus.CREATED.name())
                 .data(addCustomerRequest.getCustomerName())
                 .build();
     }
 
-    public BaseResponse<List<CustomerRespone>> getCustomer() throws Exception{
+    public BaseResponse<List<CustomerRespone>> getCustomer() throws Exception {
 
-        List<CustomerRespone> customerResponse = customerRepository.findAll().stream()
+        List<CustomerRespone> customerResponses = customerRepository.findAll().stream()
                 .filter(Customer::getIsActive)
                 .map(customer -> {
                     String pic = null;
@@ -78,7 +73,7 @@ public class CustomerService {
                 .toList();
 
         return BaseResponse.<List<CustomerRespone>>builder()
-                .data(customerResponse)
+                .data(customerResponses)
                 .message("Berhasil memuat customer")
                 .status(HttpStatus.OK.name())
                 .statusCode(HttpStatus.OK.value())
@@ -86,8 +81,8 @@ public class CustomerService {
     }
 
     public BaseResponse<?> updateCustomer(Integer id, UpdateCustomerRequest updateCustomerRequest, MultipartFile imageFile) throws Exception {
-        Optional<Customer> Customer = customerRepository.findById(id);
-        if (Customer.isEmpty()) {
+        Optional<Customer> optionalCustomer = customerRepository.findById(id);
+        if (optionalCustomer.isEmpty()) {
             return BaseResponse.builder()
                     .message("Customer tidak ditemukan")
                     .statusCode(HttpStatus.NOT_FOUND.value())
@@ -95,7 +90,7 @@ public class CustomerService {
                     .build();
         }
 
-        Customer customer = Customer.get();
+        Customer customer = optionalCustomer.get();
 
         if (imageFile != null) {
             //Remove old image
@@ -124,7 +119,7 @@ public class CustomerService {
         customerRepository.save(customer);
 
         return BaseResponse.builder()
-                .message("Berhasil memperbarui customer " + updateCustomerRequest.getCustomerName())
+                .message("Berhasil memperbarui customer " + customer.getName())
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK.name())
                 .build();
@@ -133,7 +128,11 @@ public class CustomerService {
     public BaseResponse<?> deleteCustomer(Integer customerId) throws Exception {
         Optional<Customer> optionalCustomer = customerRepository.findById(customerId);
         if(optionalCustomer.isEmpty()){
-            throw new EntityNotFoundException("Customer tidak ditemukan");
+            return BaseResponse.builder()
+                    .message("Customer tidak ditemukan")
+                    .statusCode(HttpStatus.NOT_FOUND.value())
+                    .status(HttpStatus.NOT_FOUND.name())
+                    .build();
         }
         Customer customer = optionalCustomer.get();
 
@@ -145,7 +144,7 @@ public class CustomerService {
         customerRepository.updateIsActiveById(customerId, false);
 
         return BaseResponse.<String>builder()
-                .message("Customer dengan ID " + customerId + "berhasil di hapus")
+                .message("Customer dengan ID " + customerId + "berhasil dihapus")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK.name())
                 .build();

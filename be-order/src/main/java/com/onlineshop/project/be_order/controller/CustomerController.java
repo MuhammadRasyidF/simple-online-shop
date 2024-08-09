@@ -6,6 +6,7 @@ import com.onlineshop.project.be_order.dto.response.BaseResponse;
 import com.onlineshop.project.be_order.dto.response.CustomerRespone;
 import com.onlineshop.project.be_order.service.CustomerService;
 import io.minio.errors.MinioException;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,6 +27,7 @@ public class CustomerController {
 
     @PostMapping(value = "/new", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<?> addCustomer(
+            @Valid
             @RequestPart("data") AddCustomerRequest addCustomerRequest,
             @RequestPart("image")MultipartFile imageFile) throws Exception {
 
@@ -49,8 +51,9 @@ public class CustomerController {
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
-    @PutMapping(value = "/{id}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PatchMapping(value = "/{id}/edit", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<?> updateCustomer(
+            @Valid
             @PathVariable Integer id,
             @RequestPart("data") UpdateCustomerRequest updateCustomerRequest,
             @RequestPart(value = "image", required = false) MultipartFile imageFile) throws Exception {
@@ -68,7 +71,7 @@ public class CustomerController {
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping(value = "/{id}/delete")
     public ResponseEntity<?> deleteCustomer(@PathVariable Integer id) throws Exception {
 
         BaseResponse<?> response = customerService.deleteCustomer(id);

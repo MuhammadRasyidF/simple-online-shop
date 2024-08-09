@@ -1,12 +1,8 @@
 package com.onlineshop.project.be_order.dto.request;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Builder;
 import lombok.Data;
-
-import java.util.Date;
-import java.util.UUID;
 
 @Data
 @Builder

@@ -9,8 +9,13 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 public class BaseResponse<T> {
+
     private String message;
+
     private int statusCode;
+
     private String status;
+
     private T data;
+
 }

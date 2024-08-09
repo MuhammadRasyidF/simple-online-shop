@@ -12,19 +12,13 @@ import java.util.UUID;
 @Builder
 public class AddCustomerRequest {
 
-    private Integer customerId;
-
     @NotBlank(message = " Kolom customer_name tidak boleh kosong")
     @Pattern(regexp = "^[a-zA-Z\\s]*$", message = "Kolom tidak boleh berisi special character/angka")
     private String customerName;
 
     private String address;
 
-    private UUID code = UUID.randomUUID();
-
     private String phone;
-
-    private Boolean isActive;
 
     private Date lastOrderDate;
 

@@ -17,7 +17,7 @@ public class CustomerRespone {
 
     private String address;
 
-    private UUID code = UUID.randomUUID();
+    private UUID code;
 
     private String phone;
 

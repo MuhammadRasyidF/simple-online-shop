@@ -1,21 +1,15 @@
 package com.onlineshop.project.be_order.controller;
 
-import com.onlineshop.project.be_order.dto.request.AddCustomerRequest;
 import com.onlineshop.project.be_order.dto.request.AddItemRequest;
-import com.onlineshop.project.be_order.dto.request.UpdateCustomerRequest;
 import com.onlineshop.project.be_order.dto.request.UpdateItemRequest;
 import com.onlineshop.project.be_order.dto.response.BaseResponse;
-import com.onlineshop.project.be_order.dto.response.CustomerRespone;
 import com.onlineshop.project.be_order.dto.response.ItemResponse;
-import com.onlineshop.project.be_order.service.CustomerService;
 import com.onlineshop.project.be_order.service.ItemService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -37,8 +31,20 @@ public class ItemController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getItem() throws Exception {
-        BaseResponse<List<ItemResponse>> response = itemService.getItem();
+    public ResponseEntity<?> getItem(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search) throws Exception {
+
+        BaseResponse<List<ItemResponse>> response = itemService.getItem(page, size, search);
+
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Object> getItemById(@PathVariable Integer id) throws Exception {
+
+        BaseResponse<ItemResponse> response = itemService.getItemById(id);
 
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }

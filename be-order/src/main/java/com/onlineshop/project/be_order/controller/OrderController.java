@@ -29,11 +29,23 @@ public class OrderController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getOrder() throws Exception {
-        BaseResponse<List<OrderResponse>> response = orderService.getOrder();
+    public ResponseEntity<?> getOrder(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search)throws Exception {
+
+        BaseResponse<List<OrderResponse>> response = orderService.getOrder(page, size, search);
 
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
+
+    @GetMapping(value = "/{id}")
+    public ResponseEntity<?> getOrderById(@PathVariable Integer id) throws Exception {
+        BaseResponse<OrderResponse> response = orderService.getOrderById(id);
+
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
 
     @PatchMapping(value = "/{id}/edit")
     public ResponseEntity<?> updateOrder(

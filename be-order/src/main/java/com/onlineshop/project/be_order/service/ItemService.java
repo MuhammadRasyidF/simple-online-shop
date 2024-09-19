@@ -6,7 +6,13 @@ import com.onlineshop.project.be_order.dto.response.BaseResponse;
 import com.onlineshop.project.be_order.dto.response.ItemResponse;
 import com.onlineshop.project.be_order.model.Item;
 import com.onlineshop.project.be_order.repository.ItemRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -38,9 +44,21 @@ public class ItemService {
                 .build();
     }
 
-    public BaseResponse<List<ItemResponse>> getItem() throws Exception {
+    public BaseResponse<List<ItemResponse>> getItem(int page, int size, String search) throws Exception {
 
-        List<ItemResponse> itemResponses = itemRepository.findAll().stream()
+        Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
+
+        Specification<Item> spec = Specification.where((root, query, criteriaBuilder) ->
+                criteriaBuilder.isTrue(root.get("isAvailable")));
+
+        if (search != null && !search.isEmpty()) {
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.like(root.get("name"), "%" + search + "%"));
+        }
+
+        Page<Item> itemsPage = itemRepository.findAll(spec, pageable);
+
+        List<ItemResponse> itemResponses = itemsPage.stream()
                 .map(item -> ItemResponse.builder()
                         .itemId(item.getId())
                         .itemName(item.getName())
@@ -54,6 +72,35 @@ public class ItemService {
 
         return BaseResponse.<List<ItemResponse>>builder()
                 .data(itemResponses)
+                .message("Berhasil memuat item")
+                .status(HttpStatus.OK.name())
+                .statusCode(HttpStatus.OK.value())
+                .build();
+    }
+
+    public BaseResponse<ItemResponse> getItemById(Integer id) throws Exception {
+        Item item = itemRepository.findById(id).orElse(null);
+
+        if (item == null) {
+            throw new EntityNotFoundException("Item tidak ditemukan");
+        }
+
+        if (!item.getIsAvailable()) {
+            throw new EntityNotFoundException("Item sudah dihapus");
+        }
+
+        ItemResponse itemResponse = ItemResponse.builder()
+                .itemId(item.getId())
+                .itemName(item.getName())
+                .code(item.getCode())
+                .stock(item.getStock())
+                .price(item.getPrice())
+                .isAvailable(item.getIsAvailable())
+                .lastReStock(item.getLastReStock())
+                .build();
+
+        return BaseResponse.<ItemResponse>builder()
+                .data(itemResponse)
                 .message("Berhasil memuat item")
                 .status(HttpStatus.OK.name())
                 .statusCode(HttpStatus.OK.value())

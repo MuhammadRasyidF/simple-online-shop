@@ -3,14 +3,20 @@ package com.onlineshop.project.be_order.service;
 import com.onlineshop.project.be_order.dto.request.AddCustomerRequest;
 import com.onlineshop.project.be_order.dto.request.UpdateCustomerRequest;
 import com.onlineshop.project.be_order.dto.response.BaseResponse;
-import com.onlineshop.project.be_order.dto.response.CustomerRespone;
+import com.onlineshop.project.be_order.dto.response.CustomerResponse;
 import com.onlineshop.project.be_order.model.Customer;
 import com.onlineshop.project.be_order.repository.CustomerRepository;
-import org.apache.coyote.BadRequestException;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Objects;
@@ -52,9 +58,20 @@ public class CustomerService {
                 .build();
     }
 
-    public BaseResponse<List<CustomerRespone>> getCustomer() throws Exception {
+    public BaseResponse<List<CustomerResponse>> getCustomer(int page, int size, String search) throws Exception {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
 
-        List<CustomerRespone> customerResponses = customerRepository.findAll().stream()
+        Specification<Customer> spec = Specification.where((root, query, criteriaBuilder) ->
+                criteriaBuilder.isTrue(root.get("isActive")));
+
+        if (search != null && !search.isEmpty()) {
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.like(root.get("name"), "%" + search + "%"));
+        }
+
+        Page<Customer> customerPage = customerRepository.findAll(spec, pageable);
+
+        List<CustomerResponse> customerResponses = customerPage.stream()
                 .filter(Customer::getIsActive)
                 .map(customer -> {
                     String pic = null;
@@ -62,7 +79,7 @@ public class CustomerService {
                         pic = minioService.getFileUrl(customer.getPic());
                     }
 
-                    return CustomerRespone.builder()
+                    return CustomerResponse.builder()
                             .customerId(customer.getId())
                             .customerName(customer.getName())
                             .code(customer.getCode())
@@ -74,12 +91,48 @@ public class CustomerService {
                 })
                 .toList();
 
-        return BaseResponse.<List<CustomerRespone>>builder()
+        return BaseResponse.<List<CustomerResponse>>builder()
                 .data(customerResponses)
                 .message("Berhasil memuat customer")
                 .status(HttpStatus.OK.name())
                 .statusCode(HttpStatus.OK.value())
                 .build();
+
+    }
+
+    public BaseResponse<CustomerResponse> getCustomerById(Integer id) throws Exception {
+        Customer customer = customerRepository.findById(id).orElse(null);
+
+        if (customer == null) {
+            throw new EntityNotFoundException("Customer tidak ditemukan");
+        }
+
+        if (!customer.getIsActive()) {
+            throw new EntityNotFoundException("Customer sudah tidak aktif");
+        }
+
+        String pic = null;
+        if (customer.getPic() != null && !customer.getPic().isEmpty()) {
+            pic = minioService.getFileUrl(customer.getPic());
+        }
+
+        CustomerResponse customerResponse = CustomerResponse.builder()
+                .customerId(customer.getId())
+                .customerName(customer.getName())
+                .code(customer.getCode())
+                .address(customer.getAddress())
+                .phone(customer.getPhone())
+                .isActive(customer.getIsActive())
+                .pic(pic)
+                .build();
+
+        return BaseResponse.<CustomerResponse>builder()
+                .data(customerResponse)
+                .message("Berhasil memuat customer berdasarkan id")
+                .status(HttpStatus.OK.name())
+                .statusCode(HttpStatus.OK.value())
+                .build();
+
     }
 
     public BaseResponse<?> updateCustomer(Integer id, UpdateCustomerRequest updateCustomerRequest, MultipartFile imageFile) throws Exception {

@@ -1,7 +1,5 @@
 package com.onlineshop.project.be_order.dto.response;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import lombok.Builder;
 import lombok.Data;
 
@@ -10,7 +8,7 @@ import java.util.UUID;
 
 @Data
 @Builder
-public class CustomerRespone {
+public class CustomerResponse {
     private Integer customerId;
 
     private String customerName;

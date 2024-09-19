@@ -11,7 +11,13 @@ import com.onlineshop.project.be_order.model.Order;
 import com.onlineshop.project.be_order.repository.CustomerRepository;
 import com.onlineshop.project.be_order.repository.ItemRepository;
 import com.onlineshop.project.be_order.repository.OrderRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -88,9 +94,19 @@ public class OrderService {
                 .build();
     }
 
-    public BaseResponse<List<OrderResponse>> getOrder() throws Exception {
+    public BaseResponse<List<OrderResponse>> getOrder(int page, int size, String search) throws Exception {
 
-        List<OrderResponse> orderResponses = orderRepository.findAll().stream()
+        Pageable pageable = PageRequest.of(page, size, Sort.by("date").ascending());
+
+        Specification<Order> spec = Specification.where(null);
+        if (search != null && !search.isEmpty()) {
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.like(root.get("customer").get("name"), "%" + search + "%"));
+        }
+
+        Page<Order> orderPage = orderRepository.findAll(spec, pageable);
+
+        List<OrderResponse> orderResponses = orderPage.stream()
                 .map(order -> OrderResponse.builder()
                     .orderId(order.getId())
                     .code(order.getCode())
@@ -104,6 +120,32 @@ public class OrderService {
 
         return BaseResponse.<List<OrderResponse>>builder()
                 .data(orderResponses)
+                .message("Berhasil memuat order")
+                .status(HttpStatus.OK.name())
+                .statusCode(HttpStatus.OK.value())
+                .build();
+    }
+
+    public BaseResponse<OrderResponse> getOrderById(Integer id) throws Exception {
+
+        Order order = orderRepository.findById(id).orElse(null);
+
+        if (order== null) {
+            throw new EntityNotFoundException("Order tidak ditemukan");
+        }
+
+        OrderResponse orderResponse = OrderResponse.builder()
+                .orderId(order.getId())
+                .code(order.getCode())
+                .date(order.getDate())
+                .totalPrice(order.getTotalPrice())
+                .customer(order.getCustomer())
+                .item(order.getItem())
+                .quantity(order.getQuantity())
+                .build();
+
+        return BaseResponse.<OrderResponse>builder()
+                .data(orderResponse)
                 .message("Berhasil memuat order")
                 .status(HttpStatus.OK.name())
                 .statusCode(HttpStatus.OK.value())
